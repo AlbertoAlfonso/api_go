@@ -51,5 +51,33 @@ func (h *UserHandler) createUser(c *gin.Context) {
 		return
 	}
 	user, err := h.Repository.Create(newUser)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating user"})
+		return
+	}
+	c.JSON(http.StatusCreated, user)
+}
 
+func (h *UserHandler) updateUser(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	var updatedUser User
+	if err := c.ShouldBindJSON(&updatedUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user data"})
+		return
+	}
+	user, err := h.Repository.Update(id, updatedUser)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
+
+func (h *UserHandler) deleteUser(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	if err := h.Repository.Delete(id); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+	c.JSON(http.StatusNoContent, nil)
 }
